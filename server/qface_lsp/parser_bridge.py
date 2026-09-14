@@ -9,7 +9,7 @@ dispatch here instead of hardcoding one generation, so this works with
 whatever ``antlr4-python3-runtime`` version happens to be installed.
 """
 from dataclasses import dataclass, field
-from typing import List
+from typing import Any, Dict, List, Optional, Tuple
 
 
 @dataclass
@@ -70,3 +70,61 @@ def parse_document(uri: str, source: str) -> ParseResult:
         errors.append(ParseError(line=1, column=0, message=str(exc)))
 
     return ParseResult(errors=errors)
+
+
+# id(symbol) -> (line, 0-based column) of the symbol's name token
+SymbolLocations = Dict[int, Tuple[int, int]]
+
+
+def build_system(source: str) -> Tuple[Optional[Any], SymbolLocations]:
+    """Builds the qface domain model for a single in-memory document.
+
+    Used for semantic diagnostics (e.g. unresolved types), which need the
+    domain model rather than just the parse tree. Reuses qface's own
+    ``DomainListener`` instead of reimplementing symbol collection. Errors
+    are swallowed (syntax errors are already reported by ``parse_document``)
+    since ANTLR's error recovery still produces a usable, if partial, tree
+    that this walks best-effort.
+    """
+    try:
+        import antlr4.atn.ATNDeserializer
+        from antlr4 import CommonTokenStream, InputStream, ParseTreeWalker
+        from antlr4.error.ErrorListener import ErrorListener
+        from qface.idl.domain import System
+        from qface.idl.listener import DomainListener, contextMap
+
+        if antlr4.atn.ATNDeserializer.SERIALIZED_VERSION == 3:
+            from qface.idl.parser.TLexer import TLexer
+            from qface.idl.parser.TParser import TParser
+        else:
+            from qface.idl.parser.T4Lexer import T4Lexer as TLexer
+            from qface.idl.parser.T4Parser import T4Parser as TParser
+
+        class _SilentErrorListener(ErrorListener):
+            def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+                pass
+
+        input_stream = InputStream(source)
+        lexer = TLexer(input_stream)
+        lexer.removeErrorListeners()
+        lexer.addErrorListener(_SilentErrorListener())
+
+        tokens = CommonTokenStream(lexer)
+        parser = TParser(tokens)
+        parser.removeErrorListeners()
+        parser.addErrorListener(_SilentErrorListener())
+        tree = parser.documentSymbol()
+
+        system = System()
+        ParseTreeWalker().walk(DomainListener(system), tree)
+
+        # contextMap is qface's own module-global ctx->symbol map, populated
+        # fresh by the DomainListener() call above.
+        locations: SymbolLocations = {
+            id(symbol): (ctx.name.line, ctx.name.column)
+            for ctx, symbol in contextMap.items()
+            if getattr(ctx, "name", None) is not None
+        }
+        return system, locations
+    except Exception:  # noqa: BLE001 - semantic diagnostics are best-effort
+        return None, {}

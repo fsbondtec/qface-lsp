@@ -15,8 +15,8 @@ from lsprotocol.types import (
 )
 from pygls.server import LanguageServer
 
-from .diagnostics import to_diagnostics
-from .parser_bridge import parse_document
+from .diagnostics import semantic_diagnostics, to_diagnostics
+from .parser_bridge import build_system, parse_document
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("qface_lsp")
@@ -27,7 +27,10 @@ server = LanguageServer("qface-lsp", "v0.0.1")
 def _validate(uri: str, text: str) -> None:
     try:
         result = parse_document(uri, text)
-        server.publish_diagnostics(uri, to_diagnostics(result))
+        diagnostics = to_diagnostics(result)
+        system, locations = build_system(text)
+        diagnostics.extend(semantic_diagnostics(system, locations))
+        server.publish_diagnostics(uri, diagnostics)
     except Exception:  # noqa: BLE001 - the server must never crash on bad input
         logger.exception("Failed to validate %s", uri)
 

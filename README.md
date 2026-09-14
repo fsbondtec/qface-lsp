@@ -11,7 +11,7 @@ Early-stage implementation, following the phased plan in
 - [x] Phase 0 — Project setup
 - [x] Phase 1 — Syntax highlighting (TextMate grammar)
 - [x] Phase 2 — Minimal language server (syntax diagnostics)
-- [ ] Phase 3 — Semantic diagnostics
+- [x] Phase 3 — Semantic diagnostics
 - [ ] Phase 4 — Hover / completion / go-to-definition / find references
 - [ ] Phase 5 — Robustness & tests
 - [ ] Phase 6 — Packaging & distribution
