@@ -1,0 +1,104 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "QFace",
+  "scopeName": "source.qface",
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#annotations" },
+    { "include": "#keywords" },
+    { "include": "#types" },
+    { "include": "#strings" },
+    { "include": "#numbers" },
+    { "include": "#identifiers" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.block.documentation.qface",
+          "begin": "/\\*\\*",
+          "end": "\\*/",
+          "patterns": [
+            {
+              "name": "storage.type.annotation.qface",
+              "match": "@\\w+"
+            }
+          ]
+        },
+        {
+          "name": "comment.block.qface",
+          "begin": "/\\*",
+          "end": "\\*/"
+        },
+        {
+          "name": "comment.line.double-slash.qface",
+          "match": "//.*$"
+        }
+      ]
+    },
+    "annotations": {
+      "patterns": [
+        {
+          "name": "meta.annotation.qface",
+          "match": "^\\s*(@[\\w.]+)\\s*(:)\\s*(.*)$",
+          "captures": {
+            "1": { "name": "entity.name.tag.qface" },
+            "2": { "name": "punctuation.separator.key-value.qface" },
+            "3": { "name": "string.unquoted.annotation-value.qface" }
+          }
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "keyword.other.qface",
+          "match": "\\b(module|import|interface|struct|enum|flag|signal|readonly|extends|property)\\b"
+        },
+        {
+          "name": "keyword.control.qface",
+          "match": "\\b(as)\\b"
+        }
+      ]
+    },
+    "types": {
+      "patterns": [
+        {
+          "name": "storage.type.primitive.qface",
+          "match": "\\b(int|real|string|bool|var|void)\\b"
+        },
+        {
+          "name": "storage.type.container.qface",
+          "match": "\\b(list|map|model)\\b(?=\\s*<)"
+        }
+      ]
+    },
+    "strings": {
+      "name": "string.quoted.double.qface",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.qface",
+          "match": "\\\\."
+        }
+      ]
+    },
+    "numbers": {
+      "name": "constant.numeric.qface",
+      "match": "\\b[0-9]+(\\.[0-9]+)?\\b"
+    },
+    "identifiers": {
+      "patterns": [
+        {
+          "name": "entity.name.type.qface",
+          "match": "\\b[A-Z][A-Za-z0-9_]*\\b"
+        },
+        {
+          "name": "variable.other.qface",
+          "match": "\\b[a-z_][A-Za-z0-9_]*\\b"
+        }
+      ]
+    }
+  }
+}

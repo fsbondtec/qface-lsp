@@ -1,0 +1,28 @@
+module examples.sample 1.0
+
+import QtQuick 2.0
+
+/** @brief A minimal example interface used for manual testing. */
+interface Example {
+    readonly int id
+    string name
+
+    signal started()
+    signal stopped(int code)
+}
+
+struct Point {
+    int x
+    int y
+}
+
+enum Color {
+    Red,
+    Green,
+    Blue
+}
+
+interface Broken {
+    // missing type on purpose to exercise diagnostics
+    property count
+}

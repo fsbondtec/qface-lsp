@@ -1,0 +1,77 @@
+{
+  "name": "qface-lsp",
+  "displayName": "QFace IDL",
+  "description": "Syntax highlighting and language support for the QFace IDL",
+  "version": "0.0.1",
+  "publisher": "qface-lsp",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters"
+  ],
+  "activationEvents": [
+    "onLanguage:qface"
+  ],
+  "main": "./client/out/extension.js",
+  "workspaces": [
+    "client"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "qface",
+        "aliases": [
+          "QFace",
+          "qface"
+        ],
+        "extensions": [
+          ".qface"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "qface",
+        "scopeName": "source.qface",
+        "path": "./syntaxes/qface.tmLanguage.json"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "QFace",
+      "properties": {
+        "qface.pythonPath": {
+          "type": "string",
+          "default": "python",
+          "description": "Path to the Python interpreter used to run the QFace language server."
+        },
+        "qface.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "description": "Traces the communication between VS Code and the QFace language server."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -b",
+    "watch": "tsc -b -w",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "typescript": "^5.4.0",
+    "@vscode/vsce": "^2.24.0"
+  }
+}
