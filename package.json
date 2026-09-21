@@ -1,13 +1,29 @@
 {
   "name": "qface-lsp",
   "displayName": "QFace IDL",
-  "description": "Syntax highlighting and language support for the QFace IDL",
-  "version": "0.0.1",
-  "publisher": "qface-lsp",
+  "description": "Syntax highlighting and diagnostics for the QFace interface definition language",
+  "version": "0.1.0",
+  "publisher": "fsbondtec",
   "license": "MIT",
   "icon": "images/icon.png",
+  "homepage": "https://github.com/fsbondtec/qface-lsp#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fsbondtec/qface-lsp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/fsbondtec/qface-lsp/issues"
+  },
+  "keywords": [
+    "qface",
+    "idl",
+    "interface definition language",
+    "qtinterfaceframework",
+    "language server"
+  ],
   "engines": {
-    "vscode": "^1.85.0"
+    "vscode": "^1.85.0",
+    "node": ">=18"
   },
   "categories": [
     "Programming Languages",
@@ -16,10 +32,7 @@
   "activationEvents": [
     "onLanguage:qface"
   ],
-  "main": "./client/out/extension.js",
-  "workspaces": [
-    "client"
-  ],
+  "main": "./dist/extension.js",
   "contributes": {
     "languages": [
       {
@@ -41,6 +54,12 @@
         "path": "./syntaxes/qface.tmLanguage.json"
       }
     ],
+    "commands": [
+      {
+        "command": "qface.restartServer",
+        "title": "QFace: Restart Language Server"
+      }
+    ],
     "configuration": {
       "type": "object",
       "title": "QFace",
@@ -48,7 +67,14 @@
         "qface.pythonPath": {
           "type": "string",
           "default": "python",
-          "description": "Path to the Python interpreter used to run the QFace language server."
+          "scope": "machine-overridable",
+          "markdownDescription": "Path to the Python interpreter used to run the QFace language server. The interpreter must have `pygls` and `qface` installed (see the extension README). Use an absolute path to point at a virtual environment, for example `${workspaceFolder}/.venv/Scripts/python.exe`."
+        },
+        "qface.server.enable": {
+          "type": "boolean",
+          "default": true,
+          "scope": "window",
+          "markdownDescription": "Enable the Python language server, which provides diagnostics. Disable this to use syntax highlighting only, without requiring a Python installation."
         },
         "qface.trace.server": {
           "type": "string",
@@ -58,21 +84,29 @@
             "verbose"
           ],
           "default": "off",
+          "scope": "window",
           "description": "Traces the communication between VS Code and the QFace language server."
         }
       }
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run compile",
-    "compile": "tsc -b",
-    "watch": "tsc -b -w",
-    "package": "vsce package"
+    "vscode:prepublish": "npm run check-types && npm run bundle -- --production",
+    "bundle": "node esbuild.js",
+    "check-types": "tsc --noEmit",
+    "compile": "npm run check-types && npm run bundle",
+    "watch": "node esbuild.js --watch",
+    "package": "vsce package",
+    "publish": "vsce publish"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^9.0.1"
   },
   "devDependencies": {
     "@types/node": "^20.11.0",
     "@types/vscode": "^1.85.0",
-    "typescript": "^5.4.0",
-    "@vscode/vsce": "^2.24.0"
+    "@vscode/vsce": "^2.24.0",
+    "esbuild": "^0.21.0",
+    "typescript": "^5.4.0"
   }
 }

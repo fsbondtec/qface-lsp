@@ -2,20 +2,30 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "type": "npm",
-      "script": "compile",
-      "problemMatcher": ["$tsc"],
+      "label": "build",
+      "dependsOrder": "sequence",
+      "dependsOn": ["npm: check-types", "npm: bundle"],
       "group": {
         "kind": "build",
         "isDefault": true
-      }
+      },
+      "problemMatcher": []
+    },
+    {
+      "type": "npm",
+      "script": "check-types",
+      "problemMatcher": ["$tsc"]
+    },
+    {
+      "type": "npm",
+      "script": "bundle",
+      "problemMatcher": ["$esbuild"]
     },
     {
       "type": "npm",
       "script": "watch",
       "isBackground": true,
-      "problemMatcher": ["$tsc-watch"],
-      "group": "build"
+      "problemMatcher": ["$esbuild-watch"]
     }
   ]
 }

@@ -1,5 +1,12 @@
 import * as path from "path";
-import { workspace, ExtensionContext } from "vscode";
+
+import {
+  commands,
+  window,
+  workspace,
+  ExtensionContext,
+  OutputChannel,
+} from "vscode";
 
 import {
   LanguageClient,
@@ -8,19 +15,63 @@ import {
   TransportKind,
 } from "vscode-languageclient/node";
 
-let client: LanguageClient;
+/**
+ * Must match the `qface.*` prefix of the contributed settings: the language
+ * client derives the name of its trace setting (`qface.trace.server`) from
+ * this id.
+ */
+const CLIENT_ID = "qface";
+const CLIENT_NAME = "QFace Language Server";
 
-export function activate(context: ExtensionContext): void {
+let client: LanguageClient | undefined;
+let outputChannel: OutputChannel | undefined;
+
+export async function activate(context: ExtensionContext): Promise<void> {
+  outputChannel = window.createOutputChannel(CLIENT_NAME);
+  context.subscriptions.push(outputChannel);
+
+  context.subscriptions.push(
+    commands.registerCommand("qface.restartServer", async () => {
+      await stopClient();
+      await startClient(context);
+    })
+  );
+
+  // Restart on settings changes that affect how the server process is spawned.
+  context.subscriptions.push(
+    workspace.onDidChangeConfiguration(async (event) => {
+      if (
+        event.affectsConfiguration("qface.pythonPath") ||
+        event.affectsConfiguration("qface.server.enable")
+      ) {
+        await stopClient();
+        await startClient(context);
+      }
+    })
+  );
+
+  await startClient(context);
+}
+
+export function deactivate(): Thenable<void> | undefined {
+  return stopClient();
+}
+
+async function startClient(context: ExtensionContext): Promise<void> {
   const config = workspace.getConfiguration("qface");
-  const pythonPath = config.get<string>("pythonPath", "python");
-  const serverModule = "qface_lsp.server";
-  const serverCwd = path.join(context.extensionPath, "server");
+  if (!config.get<boolean>("server.enable", true)) {
+    outputChannel?.appendLine(
+      "Language server disabled via 'qface.server.enable'; syntax highlighting only."
+    );
+    return;
+  }
 
+  const pythonPath = config.get<string>("pythonPath", "python");
   const serverOptions: ServerOptions = {
     command: pythonPath,
-    args: ["-m", serverModule],
+    args: ["-m", "qface_lsp.server"],
     options: {
-      cwd: serverCwd,
+      cwd: path.join(context.extensionPath, "server"),
     },
     transport: TransportKind.stdio,
   };
@@ -30,22 +81,64 @@ export function activate(context: ExtensionContext): void {
     synchronize: {
       fileEvents: workspace.createFileSystemWatcher("**/*.qface"),
     },
+    outputChannel,
   };
 
   client = new LanguageClient(
-    "qfaceLanguageServer",
-    "QFace Language Server",
+    CLIENT_ID,
+    CLIENT_NAME,
     serverOptions,
     clientOptions
   );
 
-  client.start();
-  context.subscriptions.push({ dispose: () => client.stop() });
+  try {
+    await client.start();
+  } catch (error) {
+    client = undefined;
+    reportStartFailure(pythonPath, error);
+  }
 }
 
-export function deactivate(): Thenable<void> | undefined {
-  if (!client) {
-    return undefined;
+async function stopClient(): Promise<void> {
+  const current = client;
+  client = undefined;
+  if (!current) {
+    return;
   }
-  return client.stop();
+  try {
+    await current.stop();
+  } catch {
+    // The process may already be gone; nothing useful left to do.
+  }
+}
+
+/**
+ * The server needs a Python interpreter with `pygls` and `qface` installed,
+ * which the VSIX cannot provide. Surface that as an actionable message instead
+ * of a bare activation failure, and keep syntax highlighting working.
+ */
+function reportStartFailure(pythonPath: string, error: unknown): void {
+  const detail = error instanceof Error ? error.message : String(error);
+  outputChannel?.appendLine(`Failed to start the QFace language server: ${detail}`);
+
+  const openSettings = "Open Settings";
+  const showLog = "Show Log";
+  void window
+    .showWarningMessage(
+      `Could not start the QFace language server using '${pythonPath}'. ` +
+        "Syntax highlighting still works, but diagnostics are unavailable. " +
+        "Check that the interpreter exists and has 'pygls' and 'qface' installed.",
+      openSettings,
+      showLog
+    )
+    .then((choice) => {
+      if (choice === openSettings) {
+        void commands.executeCommand(
+          "workbench.action.openSettings",
+          "qface.pythonPath"
+        );
+      } else if (choice === showLog) {
+        outputChannel?.show(true);
+      }
+    });
 }

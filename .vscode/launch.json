@@ -7,12 +7,11 @@
       "request": "launch",
       "runtimeExecutable": "${execPath}",
       "args": [
-        "--extensionDevelopmentPath=${workspaceFolder}"
+        "--extensionDevelopmentPath=${workspaceFolder}",
+        "${workspaceFolder}/examples"
       ],
-      "outFiles": [
-        "${workspaceFolder}/client/out/**/*.js"
-      ],
-      "preLaunchTask": "npm: compile"
+      "outFiles": ["${workspaceFolder}/dist/**/*.js"],
+      "preLaunchTask": "build"
     }
   ]
 }
