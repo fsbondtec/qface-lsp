@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  extension:
+    name: Extension (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: ["18", "20"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - run: npm ci
+      - name: Type-check
+        run: npm run check-types
+      - name: Bundle
+        run: npm run bundle -- --production
+      - name: Package VSIX
+        run: npx vsce package --out qface-lsp.vsix
+      - name: Verify VSIX does not contain development files
+        run: |
+          npx vsce ls > contents.txt
+          cat contents.txt
+          if grep -qE '(^node_modules/|^client/|server/\.venv/|\.tsbuildinfo)' contents.txt; then
+            echo "::error::VSIX contains development files; check .vscodeignore"
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        if: matrix.node == '20'
+        with:
+          name: qface-lsp-vsix
+          path: qface-lsp.vsix
+
+  server:
+    name: Language server (Python ${{ matrix.python }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+      - name: Install server dependencies
+        run: pip install -r server/requirements-dev.txt
+      - name: Import check
+        working-directory: server
+        run: python -c "from qface_lsp import server; print('server imports cleanly')"
+      - name: Parse the example document
+        working-directory: server
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          from qface_lsp.parser_bridge import build_system, parse_document
+          from qface_lsp.diagnostics import semantic_diagnostics, to_diagnostics
+
+          source = Path("../examples/sample.qface").read_text(encoding="utf-8")
+          diagnostics = to_diagnostics(parse_document("file:///sample.qface", source))
+          system, locations = build_system(source)
+          diagnostics += semantic_diagnostics(system, locations)
+          for diagnostic in diagnostics:
+              print(f"{diagnostic.range.start.line + 1}: {diagnostic.message}")
+          assert diagnostics, "expected the example document to produce diagnostics"
+          PY
