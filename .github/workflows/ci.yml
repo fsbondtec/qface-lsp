@@ -8,16 +8,16 @@ on:
 
 jobs:
   extension:
-    name: Extension (Node ${{ matrix.node }})
+    name: Extension
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node: ["18", "20"]
     steps:
       - uses: actions/checkout@v4
+      # Build tooling only: the extension runs in the Node version VS Code
+      # ships, and the bundle target is pinned in esbuild.js instead. @vscode/vsce
+      # pulls in undici, which needs Node >= 20.18.1.
       - uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node }}
+          node-version: "20"
           cache: npm
       - run: npm ci
       - name: Type-check
@@ -35,7 +35,6 @@ jobs:
             exit 1
           fi
       - uses: actions/upload-artifact@v4
-        if: matrix.node == '20'
         with:
           name: qface-lsp-vsix
           path: qface-lsp.vsix
