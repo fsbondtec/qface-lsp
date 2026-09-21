@@ -1,0 +1,25 @@
+# Everything below is build- or development-only and must not ship in the VSIX.
+# The client is bundled into dist/extension.js, so node_modules is not needed.
+.github/**
+.vscode/**
+.gitignore
+.vscodeignore
+node_modules/**
+client/**
+esbuild.js
+tsconfig.json
+package-lock.json
+dist/**/*.map
+
+# Python server: ship the sources, not the local virtualenv or caches.
+server/.venv/**
+server/**/__pycache__/**
+server/**/*.pyc
+server/**/*.egg-info/**
+server/.pytest_cache/**
+
+# Development docs that are not useful inside the installed extension.
+CONTRIBUTING.md
+
+# Icon source; only the 256x256 images/icon.png ships.
+images/icon-source.png

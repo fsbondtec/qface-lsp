@@ -1,5 +1,7 @@
 node_modules/
+dist/
 out/
+*.tsbuildinfo
 *.vsix
 .venv/
 __pycache__/
