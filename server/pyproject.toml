@@ -1,6 +1,6 @@
 [project]
 name = "qface-lsp-server"
-version = "0.0.1"
+version = "0.1.0"
 description = "Language server for the QFace IDL"
 requires-python = ">=3.9"
 license = { text = "MIT" }

@@ -1,4 +1,4 @@
-"""Hover support (Phase 4, not yet implemented).
+"""Hover support (not yet implemented).
 
 Will resolve the symbol under the cursor against the parsed qface
 domain model and return its type plus Javadoc-style documentation

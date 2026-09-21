@@ -1,4 +1,4 @@
-"""Go to Definition support (Phase 4, not yet implemented).
+"""Go to Definition support (not yet implemented).
 
 Will resolve a type reference to its declaration, potentially in
 another file, using a workspace-wide module index.

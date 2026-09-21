@@ -1,7 +1,7 @@
 """pygls-based language server for the QFace IDL.
 
-Implements Phase 2 of the implementation plan: parses .qface documents
-on open/change/save and publishes syntax diagnostics to the client.
+Parses .qface documents on open, change, and save, and publishes syntax and
+semantic diagnostics to the client.
 """
 import logging
 
@@ -15,13 +15,14 @@ from lsprotocol.types import (
 )
 from pygls.server import LanguageServer
 
+from . import __version__
 from .diagnostics import semantic_diagnostics, to_diagnostics
 from .parser_bridge import build_system, parse_document
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger("qface_lsp")
 
-server = LanguageServer("qface-lsp", "v0.0.1")
+server = LanguageServer("qface-lsp", __version__)
 
 
 def _validate(uri: str, text: str) -> None:

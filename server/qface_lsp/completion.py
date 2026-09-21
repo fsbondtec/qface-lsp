@@ -1,4 +1,4 @@
-"""Autocomplete support (Phase 4, not yet implemented).
+"""Autocomplete support (not yet implemented).
 
 Will offer context-aware keyword completions (e.g. `signal`, `readonly`
 only inside `interface { }`) plus type names from the local module and
