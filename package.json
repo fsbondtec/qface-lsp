@@ -3,7 +3,7 @@
   "displayName": "QFace IDL",
   "description": "Syntax highlighting and diagnostics for the QFace interface definition language",
   "version": "0.1.0",
-  "publisher": "fsbondtec",
+  "publisher": "FSBondtec",
   "license": "MIT",
   "icon": "images/icon.png",
   "homepage": "https://github.com/fsbondtec/qface-lsp#readme",
