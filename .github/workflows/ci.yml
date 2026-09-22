@@ -6,15 +6,15 @@ on:
   pull_request:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   extension:
     name: Extension
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # Build tooling only: the extension runs in the Node version VS Code
-      # ships, and the bundle target is pinned in esbuild.js instead. @vscode/vsce
-      # pulls in undici, which needs Node >= 20.18.1.
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
