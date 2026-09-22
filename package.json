@@ -72,9 +72,9 @@
         },
         "qface.server.enable": {
           "type": "boolean",
-          "default": true,
+          "default": false,
           "scope": "window",
-          "markdownDescription": "Enable the Python language server, which provides diagnostics. Disable this to use syntax highlighting only, without requiring a Python installation."
+          "markdownDescription": "Enable the Python language server, which adds syntax and semantic diagnostics. Disabled by default because it requires a Python interpreter with `pygls` and `qface` installed; see `qface.pythonPath`. Syntax highlighting works either way."
         },
         "qface.trace.server": {
           "type": "string",

@@ -4,9 +4,10 @@ Language support for the [QFace interface definition language](https://qface.rea
 the IDL used by [Qt Interface Framework](https://doc.qt.io/QtInterfaceFramework/) and the
 `qface` code generator — in Visual Studio Code.
 
-Syntax highlighting works out of the box. Diagnostics are provided by a Python
-language server that reuses QFace's own ANTLR parser and domain model, so what
-the editor flags is what the real generator sees.
+Syntax highlighting works out of the box, with no dependencies. Diagnostics are
+opt-in: they come from a Python language server that reuses QFace's own ANTLR
+parser and domain model, so what the editor flags is what the real generator
+sees.
 
 ## Features
 
@@ -26,9 +27,10 @@ Comment toggling, bracket matching and auto-closing, indentation rules for
 block bodies, and `// #region` / `// #endregion` folding, via
 [`language-configuration.json`](language-configuration.json).
 
-### Diagnostics
+### Diagnostics (opt-in)
 
-The language server validates open documents as you type and reports:
+Once enabled via `qface.server.enable`, the language server validates open
+documents as you type and reports:
 
 - **Syntax errors** — surfaced directly from QFace's ANTLR parser, at the
   reported line and column.
@@ -39,33 +41,39 @@ The language server validates open documents as you type and reports:
   leaf type.
 
 Diagnostics are reported under the `qface` source, so they can be filtered in
-the Problems panel.
+the Problems panel. See [Enabling diagnostics](#enabling-diagnostics) for setup.
 
 ## Requirements
 
-Syntax highlighting has no dependencies.
+Syntax highlighting and the editor behaviour described above have no
+dependencies and work as soon as the extension is installed.
 
-Diagnostics require **Python 3.9 or newer** on your machine, with the language
-server's dependencies installed:
+**Diagnostics are opt-in.** They run in a Python language server that the
+extension does not start unless you enable it, so installing this extension
+never requires Python.
+
+## Enabling diagnostics
+
+Install the server's dependencies into a Python 3.9 or newer interpreter:
 
 ```bash
 pip install pygls qface
 ```
 
-Then point the extension at that interpreter via `qface.pythonPath` (see
-below). If you prefer not to install Python at all, set
-`qface.server.enable` to `false` — the extension then provides syntax
-highlighting only and will not try to start a server.
+Then set `qface.server.enable` to `true`. Unless `python` on your `PATH` is the
+interpreter you just installed into, also point `qface.pythonPath` at the right
+one. The server starts as soon as either setting changes — no window reload
+needed.
 
-If the server cannot be started, the extension shows a warning with links to
-the relevant setting and to its log, and highlighting keeps working.
+If it cannot be started, the extension shows a warning with links to the
+relevant setting and to its log, and syntax highlighting keeps working.
 
 ## Extension settings
 
 | Setting | Type | Default | Description |
 | --- | --- | --- | --- |
 | `qface.pythonPath` | string | `python` | Path to the Python interpreter used to run the language server. Use an absolute path to select a virtual environment, e.g. `${workspaceFolder}/.venv/Scripts/python.exe` on Windows or `${workspaceFolder}/.venv/bin/python` elsewhere. |
-| `qface.server.enable` | boolean | `true` | Set to `false` for syntax highlighting only, without starting the Python server. |
+| `qface.server.enable` | boolean | `false` | Set to `true` to start the Python language server and get diagnostics. Requires a working `qface.pythonPath`. |
 | `qface.trace.server` | enum | `off` | Log LSP traffic between VS Code and the server to the *QFace Language Server* output channel. Useful values: `messages`, `verbose`. |
 
 ## Commands
@@ -79,10 +87,11 @@ The server also restarts automatically when `qface.pythonPath` or
 
 ## Troubleshooting
 
-**No diagnostics appear.** Open the *QFace Language Server* output channel
-(View → Output, then pick the channel) and check for a startup error. The most
-common cause is an interpreter without `pygls` or `qface` installed. Verify it
-independently:
+**No diagnostics appear.** First check that `qface.server.enable` is `true` — it
+is `false` by default. If it is enabled, open the *QFace Language Server* output
+channel (View → Output, then pick the channel) and check for a startup error.
+The most common cause is an interpreter without `pygls` or `qface` installed.
+Verify it independently:
 
 ```bash
 python -c "import pygls, qface; print('ok')"

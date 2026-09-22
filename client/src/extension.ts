@@ -33,7 +33,7 @@ export async function activate(context: ExtensionContext): Promise<void> {
   context.subscriptions.push(
     commands.registerCommand("qface.restartServer", async () => {
       await stopClient();
-      await startClient(context);
+      await startClient(context, { userInvoked: true });
     })
   );
 
@@ -57,12 +57,33 @@ export function deactivate(): Thenable<void> | undefined {
   return stopClient();
 }
 
-async function startClient(context: ExtensionContext): Promise<void> {
+async function startClient(
+  context: ExtensionContext,
+  options: { userInvoked?: boolean } = {}
+): Promise<void> {
   const config = workspace.getConfiguration("qface");
-  if (!config.get<boolean>("server.enable", true)) {
+  if (!config.get<boolean>("server.enable", false)) {
     outputChannel?.appendLine(
       "Language server disabled via 'qface.server.enable'; syntax highlighting only."
     );
+    // Without this the restart command would be a silent no-op, which reads
+    // like a broken command rather than a deliberate opt-out.
+    if (options.userInvoked) {
+      const openSettings = "Open Settings";
+      void window
+        .showInformationMessage(
+          "The QFace language server is disabled. Enable 'qface.server.enable' to get diagnostics.",
+          openSettings
+        )
+        .then((choice) => {
+          if (choice === openSettings) {
+            void commands.executeCommand(
+              "workbench.action.openSettings",
+              "qface.server.enable"
+            );
+          }
+        });
+    }
     return;
   }
 

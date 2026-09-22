@@ -19,8 +19,9 @@ First release prepared for the Visual Studio Code Marketplace.
 - Semantic diagnostics for unresolved complex type references in properties,
   operation return types, operation and signal parameters, and struct fields,
   including the leaf types of nested `list<>`, `map<>`, and `model<>` types
-- `qface.server.enable` setting to run the extension with syntax highlighting
-  only, without requiring a Python installation
+- `qface.server.enable` setting, defaulting to `false`, so the extension is
+  dependency-free on install and the language server has to be enabled
+  explicitly before anything spawns a Python process
 - `QFace: Restart Language Server` command; the server also restarts
   automatically when `qface.pythonPath` or `qface.server.enable` changes
 - Actionable warning with links to settings and the server log when the server
